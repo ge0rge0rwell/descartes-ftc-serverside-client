@@ -1,7 +1,7 @@
 import { searchManual } from './searchService';
 
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const OPENROUTER_MODEL = "tngtech/deepseek-r1t-chimera:free";
+const OPENROUTER_MODEL = "mistralai/mistral-7b-instruct:free";
 
 export const callGemini = async (messages) => {
     const lastUserMessage = messages[messages.length - 1].content;
