@@ -31,17 +31,24 @@ export const callGemini = async (messages) => {
 
         const rawContent = data.choices[0].message.content;
 
-        // NUCLEAR SUPPRESSION: Strip ALL reasoning patterns before returning to UI
-        const cleanedContent = rawContent
-            .replace(/<(?:think|thought|reasoning|analysis)>[\s\S]*?(?:<\/(?:think|thought|reasoning|analysis)>|$)/gi, "")
-            .replace(/^[\s\S]*?<\/think>/gi, "")
-            .replace(/^[\s\S]*?<\/thought>/gi, "")
-            .replace(/\[(?:thinking|thought|reasoning)\][\s\S]*?(?:\[\/(?:thinking|thought|reasoning)\]|$)/gi, "")
-            .replace(/^(?:thought|thinking|reasoning|analysis|analiz|düşünme süreci):?\s*.*$/gim, "")
-            .replace(/Constructing response[\s\S]*?\.\.\./gi, "")
-            .trim();
+        // TITANIUM SUPPRESSION: Recursive cleaning to ensure zero leakage
+        let cleanedContent = rawContent;
+        let previousLength;
 
-        return cleanedContent;
+        do {
+            previousLength = cleanedContent.length;
+            cleanedContent = cleanedContent
+                .replace(/<(?:think|thought|reasoning|analysis|logic|thought_process|düşünme)>[\s\S]*?(?:<\/(?:think|thought|reasoning|analysis|logic|thought_process|düşünme)>|$)/gi, "")
+                .replace(/^[\s\S]*?<\/think>/gi, "")
+                .replace(/^[\s\S]*?<\/thought>/gi, "")
+                .replace(/\[(?:thinking|thought|reasoning|analysis)\][\s\S]*?(?:\[\/(?:thinking|thought|reasoning|analysis)\]|$)/gi, "")
+                .replace(/^(?:thought|thinking|reasoning|analysis|analiz|düşünme süreci|akıl yürütme|başlıyorum):?\s*.*$/gim, "")
+                .replace(/^(?:düşünüyorum|thinking|analyzing|planlıyorum)\.*$/gim, "")
+                .replace(/Constructing response[\s\S]*?\.\.\./gi, "")
+                .replace(/^> [\s\S]*?$/gm, ""); // Strip any markdown blockquotes used for reasoning
+        } while (cleanedContent.length !== previousLength);
+
+        return cleanedContent.trim();
     } catch (error) {
         console.error("OpenRouter Gemini Error:", error);
         throw error; // Let the caller handle UI feedback

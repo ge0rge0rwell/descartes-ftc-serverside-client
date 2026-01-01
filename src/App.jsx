@@ -32,7 +32,14 @@ const App = () => {
 
     try {
       const response = await callGemini([...messages, userMessage]);
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+
+      // UI-Level Escape Hatch: Catch any potential leaks from the service
+      const superCleaned = response
+        .replace(/<(?:think|thought)>[\s\S]*?(?:<\/(?:think|thought)>|$)/gi, "")
+        .replace(/^[\s\S]*?<\/think>/gi, "")
+        .trim();
+
+      setMessages(prev => [...prev, { role: 'assistant', content: superCleaned }]);
     } catch (error) {
       setMessages(prev => [...prev, { role: 'assistant', content: "Üzgünüm, bir hata oluştu: " + error.message }]);
     } finally {
