@@ -1,0 +1,32 @@
+:root {
+    /* Minimal luxury palette */
+    --color-midnight: #080a0c;
+    --color-velvet: #0d1117;
+    --color-mint: #92daac;
+    --color-snow: #f8fafc;
+
+    /* Functional Colors */
+    --primary: var(--color-mint);
+    --primary-rgb: 146, 218, 172;
+    --bg-deep: var(--color-midnight);
+    --bg-surface: var(--color-velvet);
+    --bg-card: rgba(255, 255, 255, 0.03);
+
+    --text-main: var(--color-snow);
+    --text-secondary: #94a3b8;
+    --text-dim: #475569;
+
+    /* Precision Borders */
+    --border: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+
+    /* Elegant Effects */
+    --blur: 20px;
+    --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.3);
+    --glow-subtle: 0 0 20px rgba(var(--primary-rgb), 0.15);
+
+    /* Spacing (Generous) */
+    --p-sm: 12px;
+    --p-md: 20px;
+    --p-lg: 32px;
+}

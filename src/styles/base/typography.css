@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Outfit:wght@100..900&display=swap');
+
+:root {
+    --font-main: 'Inter', sans-serif;
+    --font-title: 'Outfit', sans-serif;
+}
+
+body {
+    font-family: var(--font-main);
+    letter-spacing: -0.015em;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.logo {
+    font-family: var(--font-title);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    text-rendering: optimizeLegibility;
+}
+
+/* Assistant messages have slightly refined weight for readability */
+.message-wrapper.assistant .message-content {
+    font-weight: 400;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.message-wrapper.user .message-content {
+    font-weight: 400;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.sidebar-section h3 {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-dim);
+    margin-bottom: var(--p-md);
+}
+
+.sidebar-footer p {
+    font-style: normal;
+    font-weight: 500;
+    opacity: 0.6;
+}

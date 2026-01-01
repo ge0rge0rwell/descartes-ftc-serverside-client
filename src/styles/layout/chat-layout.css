@@ -1,0 +1,49 @@
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-md);
+    overflow: hidden;
+    position: relative;
+}
+
+.messages-container {
+    flex: 1;
+    padding: var(--p-lg);
+    display: flex;
+    flex-direction: column;
+    gap: var(--p-lg);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+}
+
+.message-wrapper {
+    display: flex;
+    width: 100%;
+    animation: message-appear 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    opacity: 0;
+}
+
+.message-wrapper.user {
+    justify-content: flex-end;
+}
+
+@keyframes message-appear {
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .messages-container {
+        padding: var(--p-md);
+        gap: var(--p-md);
+    }
+}

@@ -1,0 +1,25 @@
+/* 
+ * DESCARTES MINIMALIST CORE
+ * Pure Excellence through Simplicity
+ */
+
+/* Base Design System */
+@import './base/variables.css';
+@import './base/reset.css';
+@import './base/typography.css';
+
+/* Layout Framework */
+@import './layout/container.css';
+@import './layout/navbar.css';
+@import './layout/sidebar.css';
+@import './layout/chat-layout.css';
+
+/* Component Library */
+@import './components/glass-card.css';
+@import './components/button.css';
+@import './components/input.css';
+@import './components/message.css';
+@import './components/indicator.css';
+
+/* Global Theme & Lighting */
+@import './themes/minimalist-premium.css';
