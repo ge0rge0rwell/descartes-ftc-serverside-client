@@ -32,8 +32,8 @@ export const callGemini = async (messages) => {
             },
             body: JSON.stringify({
                 "model": OPENROUTER_MODEL,
-                "messages": messages,
-                "temperature": 0.7,
+                "messages": augmentedMessages,
+                "temperature": 0.5, // Slightly lower temperature for more precise rule-following
                 "max_tokens": 2048,
             })
         });
@@ -54,17 +54,28 @@ export const callGemini = async (messages) => {
         let cleanedContent = rawContent;
         let previousLength;
 
+        // Final Defense: If there's an unmatched close tag or a lingering open tag, 
+        // strip everything up to the last appearance of any reasoning artifact.
+        const markers = ["</think>", "</thought>", "</reasoning>", "</analysis>", "--- END OF SEARCH ---"];
+        markers.forEach(marker => {
+            if (cleanedContent.includes(marker)) {
+                cleanedContent = cleanedContent.substring(cleanedContent.lastIndexOf(marker) + marker.length);
+            }
+        });
+
         do {
             previousLength = cleanedContent.length;
             cleanedContent = cleanedContent
-                .replace(/<(?:think|thought|reasoning|analysis|logic|thought_process|düşünme)>[\s\S]*?(?:<\/(?:think|thought|reasoning|analysis|logic|thought_process|düşünme)>|$)/gi, "")
+                .replace(/<(?:think|thought|reasoning|analysis|logic|thought_process|düşünme|muhakeme|internal)>[\s\S]*?(?:<\/(?:think|thought|reasoning|analysis|logic|thought_process|düşünme|muhakeme|internal)>|$)/gi, "")
                 .replace(/^[\s\S]*?<\/think>/gi, "")
                 .replace(/^[\s\S]*?<\/thought>/gi, "")
-                .replace(/\[(?:thinking|thought|reasoning|analysis)\][\s\S]*?(?:\[\/(?:thinking|thought|reasoning|analysis)\]|$)/gi, "")
-                .replace(/^(?:thought|thinking|reasoning|analysis|analiz|düşünme süreci|akıl yürütme|başlıyorum):?\s*.*$/gim, "")
-                .replace(/^(?:düşünüyorum|thinking|analyzing|planlıyorum)\.*$/gim, "")
+                .replace(/^[\s\S]*?<\/reasoning>/gi, "")
+                .replace(/\[(?:thinking|thought|reasoning|analysis|internal)\][\s\S]*?(?:\[\/(?:thinking|thought|reasoning|analysis|internal)\]|$)/gi, "")
+                .replace(/^(?:thought|thinking|reasoning|analysis|analiz|düşünme süreci|akıl yürütme|başlıyorum|muhakeme|planlama):?\s*.*$/gim, "")
+                .replace(/^(?:düşünüyorum|thinking|analyzing|planlıyorum|hazırlıyorum)\.*$/gim, "")
                 .replace(/Constructing response[\s\S]*?\.\.\./gi, "")
-                .replace(/^> [\s\S]*?$/gm, ""); // Strip any markdown blockquotes used for reasoning
+                .replace(/^(?:\*\*)?(?:thought|thinking|reasoning|analysis|analiz|düşünme süreci)(?:\*\*)?:?\s*.*$/gim, "")
+                .replace(/^> [\s\S]*?$/gm, "");
         } while (cleanedContent.length !== previousLength);
 
         return cleanedContent.trim();

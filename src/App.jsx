@@ -33,8 +33,16 @@ const App = () => {
     try {
       const response = await callGemini([...messages, userMessage]);
 
-      // UI-Level Escape Hatch: Catch any potential leaks from the service
-      const superCleaned = response
+      // UI-Level Escape Hatch: Final scorched-earth check
+      let superCleaned = response;
+      const finalMarkers = ["</think>", "</thought>", "</reasoning>", "--- END OF SEARCH ---"];
+      finalMarkers.forEach(m => {
+        if (superCleaned.includes(m)) {
+          superCleaned = superCleaned.substring(superCleaned.lastIndexOf(m) + m.length);
+        }
+      });
+
+      superCleaned = superCleaned
         .replace(/<(?:think|thought)>[\s\S]*?(?:<\/(?:think|thought)>|$)/gi, "")
         .replace(/^[\s\S]*?<\/think>/gi, "")
         .trim();
