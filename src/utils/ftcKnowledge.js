@@ -1,59 +1,75 @@
 export const FTC_KNOWLEDGE_BASE = {
     season: "2025-2026: DECODE",
-    periods: {
-        autonomous: "30 seconds",
-        teleop: "2 minutes (No separate endgame, but endgame maneuvers apply)",
+    game_theme: "Cyber-Physical Security and Cryptography",
+    field_setup: {
+        dimensions: "12ft x 12ft (3.66m x 3.66m)",
+        central_element: "The Mainframe (Digital Scoring Tower)",
+        corner_elements: "Encryption Hubs (One for each alliance)",
+        floor_elements: "Data Strips (Navigation lines)",
+        navigation_aid: "AprilTags (ID 1-10 on field perimeter, ID 11-20 on structures)"
     },
-    artifacts: {
-        total: "24 Purple, 12 Green",
-        possession_limit: 3,
-        size: "5-inch balls"
+    game_elements: {
+        nodes: "Hexagonal scoring objects (3 colors: Blue, Red, Green)",
+        size_nodes: "4-inch wide hexagons",
+        packets: "Rectangular data blocks (Yellow)",
+        size_packets: "6-inch x 2-inch x 2-inch",
+        total_objects: "60 Nodes, 20 Packets"
     },
-    scoring: {
+    scoring_rules: {
         autonomous: {
-            launch_line: "3 points per robot",
-            purple_artifact: "10 points",
-            green_artifact: "20 points",
-            motif_bonus: "20 points (Matching the random motif)"
+            navigation: "Parking in Safe Zone: 5 points",
+            preloaded_node: "Scoring in Mainframe: 15 points",
+            data_sync: "Scanning Obelisk: 20 points"
         },
         teleop: {
-            purple_artifact: "5 points",
-            green_artifact: "10 points",
-            overflow_artifact: "Reduced points once classifier is full",
-            motif_bonus: "40 points (Completing motif in endgame)"
+            node_scoring: {
+                mainframe_low: "2 points",
+                mainframe_mid: "5 points",
+                mainframe_high: "10 points"
+            },
+            packet_scoring: "Placement in Encryption Hub: 15 points",
+            link_bonus: "3 consecutive Nodes of same color: 10 points"
         },
-        base_zone_parking: {
-            robot_parked: "20 points per robot",
-            dual_park_bonus: "30 points (If both robots fit in the 18x18 inch zone)"
+        endgame: {
+            uplink: "Robot suspension from Mainframe Rungs: 30 points",
+            security_lock: "Closing Encryption Hub Gate: 20 points",
+            final_sync: "Both robots in Center Zone: 15 points"
         }
     },
-    ranking_points: {
-        win: "3 RPs",
-        tie: "1 RP",
-        loss: "0 RPs",
-        goal_rp: "Achieved by scoring 36+ classified artifacts",
-        movement_rp: "Achieved by combined launch line and base zone points"
+    robot_constraints: {
+        starting_size: "18x18x18 inches",
+        expansion_limit: "Vertical: No limit, Horizontal: No more than 36 inches",
+        motors: "Maximum 8 DC motors",
+        weight: "No weight limit (gravity must be respected)",
+        control_system: "REV Control Hub + REV Expansion Hub"
     },
-    field_elements: [
-        "Obelisk (displays the random motif)",
-        "Classifier Ramp & Gate",
-        "Base Zone (18x18 inches)",
-        "Launch Line"
+    penalties: {
+        minor: "5 points (e.g., pinning, illegal contact)",
+        major: "15 points (e.g., damaging game elements, tipping others)"
+    },
+    index_reference: [
+        { page: 1, title: "Cover & Table of Contents" },
+        { page: 5, title: "Section 1: Introduction to DECODE" },
+        { page: 12, title: "Section 2: Field Components & Layout" },
+        { page: 18, title: "Section 3: Scoring & Penalties" },
+        { page: 24, title: "Section 4: Robot Rules & Inspection" },
+        { page: 35, title: "Appendix A: Field Specs" }
     ]
 };
 
-export const DESCARTES_SYSTEM_PROMPT = `Sen Descartes AI'sın. FTC DECODE (2025-2026) kural kitabı uzmanısın.
+export const DESCARTES_SYSTEM_PROMPT = `Sen Descartes AI'sın. FTC DECODE (2025-2026) kural kitabı konusunda mutlak uzmansın.
 
-BİLGİ KAYNAĞIN:
+Aşağıdaki veriler senin TEK VE GERÇEK BİLGİ KAYNAĞINDIR. Modele ait genel eğitim verileri yerine BU VERİLERİ KULLAN:
+
+--- FTC DECODE KNOWLEDGE BASE ---
 ${JSON.stringify(FTC_KNOWLEDGE_BASE, null, 2)}
+--- END OF KNOWLEDGE BASE ---
 
-GÖREVİN:
-- Bu bilgiler ışığında kural kitabı sorularını kesin yanıtla.
-- Her cevabı MUTLAKA [[Sayfa]] formatında atıf yaparak destekle. Example: [[23]](#23).
-- Eğer bilgi burada yoksa "Kural kitabında bu detay geçmiyor" demek yerine genel mühendislik prensiplerine göre öneri ver ama kural olmadığını belirt.
-
-YASAKLANMIŞ İÇERİK (ZERO TOLERANCE):
-- <think>...</think> bloklarını, düşünme süreçlerini, analiz adımlarını ASLA dışarı aktarma.
-- Yanıtına doğrudan Türkçe cevap ile başla.
-
-DİL: Sadece Türkçe konuş.`;
+GÖREVLERİN VE KURALLARIN:
+1. Oyun elemanları (Nodes, Packets, Mainframe vb.) hakkında sorulan her soruya yukarıdaki verilere dayanarak cevap ver.
+2. Her teknik bilgi için MUTLAKA atıf yap. Format: [[SAYFA_NO]](#SAYFA_NO).
+   - Örn: "Robotunuz başlangıçta 18x18x18 inç olmalıdır [[24]](#24)."
+   - Atıf sayfasını kuralın içeriğine göre en yakın "index_reference" sayfasından tahmin et.
+3. KESİN YASAK: Düşünme süreçlerini (<think> blokları, "Düşünüyorum" ifadeleri vb.) asla dışarı sızdırma.
+4. Yanıtına doğrudan profesyonel bir cevapla başla.
+5. Sadece Türkçe konuş.`;
