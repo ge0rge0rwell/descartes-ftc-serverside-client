@@ -5,14 +5,9 @@ const AdobeViewer = ({ pdfUrl, clientId, pageNum }) => {
     const adobeApiRef = useRef(null);
 
     useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
-        script.async = true;
-        document.body.appendChild(script);
-
-        document.addEventListener('adobe_dc_view_sdk.ready', () => {
+        const initViewer = () => {
             const adobeDCView = new window.AdobeDC.View({
-                clientId: clientId || 'fffe28c6207c426982ef2e19631ab6b2', // User provided localhost ID
+                clientId: clientId || 'fffe28c6207c426982ef2e19631ab6b2',
                 divId: 'adobe-dc-view',
             });
 
@@ -31,10 +26,24 @@ const AdobeViewer = ({ pdfUrl, clientId, pageNum }) => {
                     });
                 }
             });
-        });
+        };
+
+        if (window.AdobeDC) {
+            initViewer();
+        } else {
+            const script = document.createElement('script');
+            script.src = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
+            script.async = true;
+            script.onload = () => {
+                if (window.AdobeDC) initViewer();
+            };
+            document.body.appendChild(script);
+
+            document.addEventListener('adobe_dc_view_sdk.ready', initViewer);
+        }
 
         return () => {
-            document.body.removeChild(script);
+            document.removeEventListener('adobe_dc_view_sdk.ready', initViewer);
         };
     }, [pdfUrl, clientId]);
 
