@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { FTC_KNOWLEDGE_BASE, DESCARTES_SYSTEM_PROMPT } from './utils/ftcKnowledge'
-import { initWebLLM, chatWithWebLLM } from './services/webLLMService'
+import { callGemini } from './services/geminiService'
 
 const DescartesAI = () => {
   const [messages, setMessages] = useState([
     { role: 'system', content: DESCARTES_SYSTEM_PROMPT },
-    { role: 'assistant', content: "Greetings, Partner. I am Descartes AI. I've switched to a memory-optimized core (Llama 3.2 1B) to ensure a smooth partnership. Ready to approach the field?" }
+    { role: 'assistant', content: "Greetings, Partner. I am Descartes AI. I've switched to the Gemini 2.0 Pro core to ensure a stable and powerful partnership. Ready to approach the field?" }
   ])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const [loadingProgress, setLoadingProgress] = useState('')
-  const [isLoaded, setIsLoaded] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(true)
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -18,19 +17,8 @@ const DescartesAI = () => {
   }
 
   useEffect(() => {
-    const loadModel = async () => {
-      try {
-        await initWebLLM((report) => {
-          setLoadingProgress(report.text)
-        })
-        setIsLoaded(true)
-        setMessages(prev => [...prev, { role: 'assistant', content: "Neural synthesis complete. I've been specifically trained on the FTC DECODE (2025-2026) Game Manual. Ready to build the winning strategy, Partner?" }])
-      } catch (err) {
-        setLoadingProgress("Error: WebGPU might not be enabled or supported in your browser.")
-        console.error(err)
-      }
-    }
-    loadModel()
+    // Gemini API is cloud-based, no local model loading required
+    setMessages(prev => [...prev, { role: 'assistant', content: "Cloud synthesis complete. Descartes FTC is now powered by Gemini 2.0 Pro. Trained on the DECODE (2025-2026) manual. Ready to build the winning strategy, Partner?" }])
   }, [])
 
   useEffect(() => {
@@ -45,18 +33,19 @@ const DescartesAI = () => {
     setInput('')
     setIsTyping(true)
 
-    // Local Llama 3 Integration (Browser-side)
+    // Gemini Integration (Cloud-side)
     try {
-      // Memory Optimization: Keep system prompt + last 6 conversational turns
-      const systemPrompt = messages[0];
-      const conversationHistory = messages.slice(1).slice(-6);
-      const chatHistory = [systemPrompt, ...conversationHistory, userMessage];
-
-      const assistantResponse = await chatWithWebLLM(chatHistory);
+      // Send the conversation context to Gemini
+      // We pass the full history (except system prompt which is already in memory or passed as first message)
+      const assistantResponse = await callGemini([...messages, userMessage]);
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "I hit a snag running locally. Check if your browser supports WebGPU!" }]);
+      console.error("Gemini Error:", error);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `I hit a snag connecting to the cloud: ${error.message}. Please check your connection.`
+      }]);
     } finally {
       setIsTyping(false);
     }
@@ -89,7 +78,7 @@ const DescartesAI = () => {
             </ul>
           </div>
           <div className="sidebar-footer">
-            <p>Powered by Llama 3</p>
+            <p>Powered by Gemini 2.0 Pro</p>
           </div>
         </aside>
 
@@ -118,16 +107,9 @@ const DescartesAI = () => {
           </div>
 
           <div className="input-container glass-card">
-            {!isLoaded && (
-              <div className="model-loading-overlay">
-                <div className="loading-bar-container">
-                  <div className="loading-status">{loadingProgress}</div>
-                </div>
-              </div>
-            )}
             <input
               type="text"
-              placeholder={isLoaded ? "Ask about rules, scoring, or hardware..." : "Loading Llama 3 (First time may take a bit)..."}
+              placeholder="Ask about rules, scoring, or hardware..."
               value={input}
               disabled={!isLoaded}
               onChange={(e) => setInput(e.target.value)}
@@ -312,26 +294,6 @@ const DescartesAI = () => {
           font-style: italic;
           color: var(--text-muted);
           font-size: 0.8rem;
-        }
-
-        .model-loading-overlay {
-          position: absolute;
-          top: -40px;
-          left: 0;
-          right: 0;
-          padding: 10px;
-          text-align: center;
-          font-size: 0.75rem;
-          color: var(--accent);
-          background: var(--bg-surface);
-          border-top: 1px solid var(--border);
-          border-radius: 8px 8px 0 0;
-        }
-
-        .loading-status {
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
         }
 
         @media (max-width: 768px) {
