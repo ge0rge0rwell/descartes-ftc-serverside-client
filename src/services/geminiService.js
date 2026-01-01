@@ -31,15 +31,14 @@ export const callGemini = async (messages) => {
 
         const rawContent = data.choices[0].message.content;
 
-        // FOOLPROOF SUPPRESSION:
+        // NUCLEAR SUPPRESSION: Strip ALL reasoning patterns before returning to UI
         const cleanedContent = rawContent
-            .replace(/<(?:think|thought)>[\s\S]*?(?:<\/(?:think|thought)>|$)/gi, "")
-            .replace(/^[\s\S]*?<\/think>/gi, "") // Handle cases where start tag is missing or missed
-            .replace(/\[thinking\][\s\S]*?(?:\[\/thinking\]|$)/gi, "")
-            .replace(/^thought:?\s*.*$/gim, "")
-            .replace(/^thinking:?\s*.*$/gim, "")
-            .replace(/^\s*analiz:?\s*.*$/gim, "")
-            .replace(/^\s*düşünme süreci:?\s*.*$/gim, "")
+            .replace(/<(?:think|thought|reasoning|analysis)>[\s\S]*?(?:<\/(?:think|thought|reasoning|analysis)>|$)/gi, "")
+            .replace(/^[\s\S]*?<\/think>/gi, "")
+            .replace(/^[\s\S]*?<\/thought>/gi, "")
+            .replace(/\[(?:thinking|thought|reasoning)\][\s\S]*?(?:\[\/(?:thinking|thought|reasoning)\]|$)/gi, "")
+            .replace(/^(?:thought|thinking|reasoning|analysis|analiz|düşünme süreci):?\s*.*$/gim, "")
+            .replace(/Constructing response[\s\S]*?\.\.\./gi, "")
             .trim();
 
         return cleanedContent;
