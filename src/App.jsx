@@ -47,7 +47,11 @@ const DescartesAI = () => {
 
     // Local Llama 3 Integration (Browser-side)
     try {
-      const chatHistory = messages.concat(userMessage);
+      // Memory Optimization: Keep only the system prompt and the last 6 messages
+      const systemPrompt = messages[0];
+      const recentMessages = messages.slice(-6).concat(userMessage);
+      const chatHistory = [systemPrompt, ...recentMessages];
+
       const assistantResponse = await chatWithWebLLM(chatHistory);
 
       setMessages(prev => [...prev, { role: 'assistant', content: assistantResponse }]);
