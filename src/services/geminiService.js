@@ -1,6 +1,6 @@
 import { searchManual } from './searchService';
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const OPENROUTER_API_KEY = "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";
 const OPENROUTER_MODEL = "mistralai/mistral-7b-instruct:free";
 
 export const callGemini = async (messages) => {
