@@ -29,4 +29,9 @@
     --p-sm: 12px;
     --p-md: 20px;
     --p-lg: 32px;
+
+    /* Aliases for older components */
+    --space-sm: var(--p-sm);
+    --space-md: var(--p-md);
+    --space-lg: var(--p-lg);
 }

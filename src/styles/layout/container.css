@@ -3,23 +3,24 @@
     flex-direction: column;
     width: 100vw;
     height: 100vh;
-    background: radial-gradient(circle at 50% 50%, #0d1218 0%, #030507 100%);
+    background: #050709;
     position: relative;
     overflow: hidden;
 }
 
-.main-layout {
+/* Background ambient glow moved from minimalist-premium to base if needed, 
+   but keeping it focused here on structure */
+
+.main-content {
     display: flex;
     flex: 1;
-    padding: var(--space-md);
-    gap: var(--space-md);
     overflow: hidden;
     position: relative;
+    background: var(--bg-deep);
 }
 
 @media (max-width: 768px) {
-    .main-layout {
-        padding: var(--space-sm);
-        gap: var(--space-sm);
+    .main-content {
+        flex-direction: column;
     }
 }

@@ -103,6 +103,25 @@ const DescartesAI = () => {
       </nav>
 
       <main className="main-content">
+        {/* SIDEBAR AS OVERLAY/DRAWER */}
+        <aside className={`sidebar glass-card ${showSidebar ? 'show' : ''}`}>
+          <div className="sidebar-header">
+            <h3 style={{ margin: 0 }}>MENÜ</h3>
+            <button className="close-sidebar" onClick={() => setShowSidebar(false)}>✕</button>
+          </div>
+          <div className="sidebar-section">
+            <h3 style={{ fontSize: '0.7rem', opacity: 0.5, marginBottom: '15px' }}>DÖKÜMANTASYON</h3>
+            <ul>
+              <li className="glass-card-interactive" onClick={() => { setPdfPage(1); setShowSidebar(false); }}>Kapak Sayfası</li>
+              <li className="glass-card-interactive" onClick={() => { setPdfPage(5); setShowSidebar(false); }}>Oyun Kuralları</li>
+              <li className="glass-card-interactive" onClick={() => { setPdfPage(12); setShowSidebar(false); }}>Robot Kısıtlamaları</li>
+              <li className="glass-card-interactive" onClick={() => { setPdfPage(24); setShowSidebar(false); }}>Puanlama Tablosu</li>
+            </ul>
+          </div>
+          <div className="sidebar-footer">
+            <p>DESIGNED FOR DECODE</p>
+          </div>
+        </aside>
         {/* PDF VIEW PANE */}
         <section className="pdf-pane">
           <iframe
