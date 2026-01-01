@@ -1,7 +1,11 @@
-import manualIndex from '../data/manual-index.json';
-
-export const searchManual = (query, limit = 3) => {
+/**
+ * Search the manual index dynamically to keep the initial bundle small.
+ */
+export const searchManual = async (query, limit = 3) => {
     if (!query) return [];
+
+    // Dynmically import to prevent large bundle size
+    const { default: manualIndex } = await import('../data/manual-index.json');
 
     const searchTerms = query.toLowerCase().split(' ').filter(word => word.length > 2);
 

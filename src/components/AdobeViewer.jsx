@@ -56,11 +56,25 @@ const AdobeViewer = ({ pdfUrl, clientId, pageNum }) => {
     }, [pageNum]);
 
     return (
-        <div
-            id="adobe-dc-view"
-            ref={viewerRef}
-            style={{ width: '100%', height: '100%' }}
-        />
+        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            {!adobeApiRef.current && (
+                <div style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    color: 'var(--text-secondary)',
+                    zIndex: 0
+                }}>
+                    Klavuz Yükleniyor...
+                </div>
+            )}
+            <div
+                id="adobe-dc-view"
+                ref={viewerRef}
+                style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }}
+            />
+        </div>
     );
 };
 

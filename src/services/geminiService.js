@@ -5,7 +5,7 @@ const OPENROUTER_MODEL = "mistralai/mistral-7b-instruct:free";
 
 export const callGemini = async (messages) => {
     const lastUserMessage = messages[messages.length - 1].content;
-    const searchResults = searchManual(lastUserMessage);
+    const searchResults = await searchManual(lastUserMessage);
 
     let contextHeader = "\n\n--- MANUAL SEARCH RESULTS ---\n";
     if (searchResults.length > 0) {
