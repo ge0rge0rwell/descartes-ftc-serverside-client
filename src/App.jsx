@@ -12,6 +12,7 @@ const App = () => {
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [pdfPage, setPdfPage] = useState(1)
+  const [activeTab, setActiveTab] = useState('chat') // mobile tab: 'pdf' or 'chat'
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -68,6 +69,7 @@ const App = () => {
             onClick={(e) => {
               e.preventDefault();
               setPdfPage(parseInt(match[2]));
+              setActiveTab('pdf');
             }}
           >
             [{match[1]}]
@@ -89,15 +91,30 @@ const App = () => {
         </div>
       </header>
 
+      <nav className="mobile-tabs">
+        <button
+          className={activeTab === 'chat' ? 'active' : ''}
+          onClick={() => setActiveTab('chat')}
+        >
+          Sohbet
+        </button>
+        <button
+          className={activeTab === 'pdf' ? 'active' : ''}
+          onClick={() => setActiveTab('pdf')}
+        >
+          Klavuz
+        </button>
+      </nav>
+
       <main className="main-content">
-        <div className="pdf-pane">
+        <div className={`pdf-pane ${activeTab === 'pdf' ? 'active' : ''}`}>
           <AdobeViewer
             pdfUrl="/game-manual.pdf"
             pageNum={pdfPage}
           />
         </div>
 
-        <div className="chat-pane">
+        <div className={`chat-pane ${activeTab === 'chat' ? 'active' : ''}`}>
           <div className="chat-messages">
             {messages.filter(m => m.role !== 'system').map((msg, i) => (
               <div key={i} className={`message ${msg.role}`}>
