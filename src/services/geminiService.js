@@ -1,7 +1,26 @@
+import { searchManual } from './searchService';
+
 const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = "tngtech/deepseek-r1t-chimera:free";
 
 export const callGemini = async (messages) => {
+    const lastUserMessage = messages[messages.length - 1].content;
+    const searchResults = searchManual(lastUserMessage);
+
+    let contextHeader = "\n\n--- MANUAL SEARCH RESULTS ---\n";
+    if (searchResults.length > 0) {
+        searchResults.forEach(res => {
+            contextHeader += `[SAYFA ${res.page}]:\n${res.content}\n\n`;
+        });
+    } else {
+        contextHeader += "Aranan konu kural kitabında bulunamadı.\n";
+    }
+    contextHeader += "--- END OF SEARCH ---\n";
+
+    // Inject results into system message or as a separate context message
+    const augmentedMessages = [...messages];
+    augmentedMessages[0].content += contextHeader;
+
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
