@@ -29,7 +29,14 @@ export const callGemini = async (messages) => {
             throw new Error('Invalid OpenRouter response');
         }
 
-        return data.choices[0].message.content;
+        const rawContent = data.choices[0].message.content;
+        // Strip thinking blocks (e.g., <think>...</think>, <thought>...</thought>, [thinking]...[/thinking])
+        const cleanedContent = rawContent
+            .replace(/<(think|thought)>[\s\S]*?<\/\1>/gi, '') // Case-insensitive, handles both <think> and <thought>
+            .replace(/\[thinking\][\s\S]*?\[\/thinking\]/gi, '') // Handles potential square bracket versions
+            .trim();
+
+        return cleanedContent;
     } catch (error) {
         console.error("OpenRouter Gemini Error:", error);
         throw error; // Let the caller handle UI feedback

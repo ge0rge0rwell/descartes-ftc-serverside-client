@@ -10,6 +10,7 @@ const DescartesAI = () => {
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [isLoaded, setIsLoaded] = useState(true)
+  const [showSidebar, setShowSidebar] = useState(false)
   const messagesEndRef = useRef(null)
 
   const scrollToBottom = () => {
@@ -18,7 +19,7 @@ const DescartesAI = () => {
 
   useEffect(() => {
     // Gemini API is cloud-based, no local model loading required
-    setMessages(prev => [...prev, { role: 'assistant', content: "Cloud synthesis complete. Descartes FTC is now powered by Gemini 2.0 Pro. Trained on the DECODE (2025-2026) manual. Ready to build the winning strategy, Partner?" }])
+    setMessages(prev => [...prev, { role: 'assistant', content: "Bulut sentezi tamamlandı. Descartes AI artık Türkçe biliyor ve DECODE (2025-2026) sezonuna hazır. Stratejimizi planlamaya başlayalım mı, Takım Arkadaşı?" }])
   }, [])
 
   useEffect(() => {
@@ -55,30 +56,40 @@ const DescartesAI = () => {
     <div className="app-container">
       <nav className="navbar glass-card">
         <div className="logo-container">
+          <button
+            className="mobile-toggle"
+            onClick={() => setShowSidebar(!showSidebar)}
+            aria-label="Toggle Menu"
+          >
+            ☰
+          </button>
           <img src="/logo.png" alt="Descartes Logo" className="navbar-logo" />
           <div className="logo ftc-text">
-            <span className="descartes-glow">DESCARTES</span> <span style={{ color: 'var(--primary)' }}>FTC</span>
+            <span className="descartes-glow">DESCARTES</span> <span style={{ color: 'var(--primary)' }} className="mobile-hide">FTC</span>
           </div>
         </div>
-        <div className="nav-links">
-          <button className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>Game Manuals</button>
-          <button className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem', marginLeft: '10px' }}>Resources</button>
+        <div className="nav-links mobile-hide">
+          <button className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem' }}>Oyun Kılavuzları</button>
+          <button className="btn-secondary" style={{ padding: '5px 15px', fontSize: '0.8rem', marginLeft: '10px' }}>Kaynaklar</button>
         </div>
       </nav>
 
       <main className="main-layout">
-        <aside className="sidebar glass-card">
+        <aside className={`sidebar glass-card ${showSidebar ? 'show' : ''}`}>
+          <div className="sidebar-header mobile-only">
+            <button className="close-sidebar" onClick={() => setShowSidebar(false)}>✕</button>
+          </div>
           <div className="sidebar-section">
-            <h3>Knowledge Base</h3>
+            <h3>Bilgi Bankası</h3>
             <ul>
-              <li>Season Rules 2025-26</li>
-              <li>Artifact Handling Tips</li>
-              <li>Motif Decoding Guide</li>
-              <li>Base Zone Strategy</li>
+              <li onClick={() => setShowSidebar(false)}>Sezon Kuralları 2025-26</li>
+              <li onClick={() => setShowSidebar(false)}>Artifact Taşıma İpuçları</li>
+              <li onClick={() => setShowSidebar(false)}>Motif Çözme Rehberi</li>
+              <li onClick={() => setShowSidebar(false)}>Base Zone Stratejisi</li>
             </ul>
           </div>
           <div className="sidebar-footer">
-            <p>Powered by Gemini 2.0 Pro</p>
+            <p>Gemini 2.0 Pro ile Güçlendirildi</p>
           </div>
         </aside>
 
@@ -99,7 +110,7 @@ const DescartesAI = () => {
             {isTyping && (
               <div className="message-wrapper assistant">
                 <div className="message glass-card typing-indicator">
-                  Descartes is thinking...
+                  Descartes düşünüyor...
                 </div>
               </div>
             )}
@@ -109,14 +120,14 @@ const DescartesAI = () => {
           <div className="input-container glass-card">
             <input
               type="text"
-              placeholder="Ask about rules, scoring, or hardware..."
+              placeholder="Kurallar, puanlama veya donanım hakkında sorun..."
               value={input}
               disabled={!isLoaded}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             />
             <button className="btn-primary" onClick={handleSend} disabled={!isLoaded || isTyping}>
-              {isTyping ? 'Thinking...' : 'Send'}
+              {isTyping ? 'Düşünüyor...' : 'Gönder'}
             </button>
           </div>
         </section>
@@ -242,7 +253,7 @@ const DescartesAI = () => {
 
         .message.assistant.glow-border {
           border-left: 3px solid var(--accent);
-          box-shadow: var(--glow-blue);
+          box-shadow: var(--glow-accent);
         }
 
         .message-header {
@@ -260,7 +271,7 @@ const DescartesAI = () => {
 
         .message-wrapper.assistant .message-header {
           color: var(--accent);
-          text-shadow: 0 0 5px rgba(0, 163, 255, 0.3);
+          text-shadow: 0 0 5px rgba(146, 218, 172, 0.3);
         }
 
         .message-content {
@@ -287,7 +298,7 @@ const DescartesAI = () => {
 
         .input-container input:focus {
           border-color: var(--primary);
-          box-shadow: var(--glow-blue);
+          box-shadow: var(--glow-primary);
         }
 
         .typing-indicator {
@@ -297,11 +308,76 @@ const DescartesAI = () => {
         }
 
         @media (max-width: 768px) {
-          .sidebar {
+          .navbar {
+            padding: 0.5rem 1rem;
+            margin: 5px;
+          }
+
+          .mobile-hide {
             display: none;
           }
+
+          .mobile-toggle {
+            display: block;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+          }
+
+          .sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            height: 100vh;
+            z-index: 1000;
+            transition: 0.3s ease-in-out;
+            margin: 0;
+            border-radius: 0;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+          }
+
+          .sidebar.show {
+            left: 0;
+          }
+
+          .sidebar-header.mobile-only {
+            display: flex;
+            justify-content: flex-end;
+            padding-bottom: 1rem;
+          }
+
+          .close-sidebar {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.5rem;
+            cursor: pointer;
+          }
+
+          .main-layout {
+            padding: 5px;
+          }
+
           .message {
-            max-width: 95%;
+            max-width: 90%;
+            padding: 0.8rem;
+          }
+
+          .input-container {
+            padding: 0.8rem;
+          }
+
+          .btn-primary {
+            padding: 10px 15px;
+          }
+        }
+
+        @media (min-width: 769px) {
+          .mobile-toggle, .mobile-only {
+            display: none;
           }
         }
       `}} />
