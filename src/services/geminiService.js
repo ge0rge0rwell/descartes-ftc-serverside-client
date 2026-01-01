@@ -1,5 +1,5 @@
-const OPENROUTER_API_KEY = "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";
-const OPENROUTER_MODEL = "google/gemini-2.0-flash-lite-preview-02-05:free";
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const OPENROUTER_MODEL = "tngtech/deepseek-r1t-chimera:free";
 
 export const callGemini = async (messages) => {
     try {
