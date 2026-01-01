@@ -31,14 +31,15 @@ export const callGemini = async (messages) => {
 
         const rawContent = data.choices[0].message.content;
 
-        // Aggressive cleaning: 
-        // 1. Remove closed or unclosed <think>, <thought>, [thinking] tags
-        // 2. Remove common text-based prefixes like "Thinking Process:", "Thought:", etc.
+        // FOOLPROOF SUPPRESSION:
         const cleanedContent = rawContent
-            .replace(/<(think|thought)>[\s\S]*?(?:<\/\1>|$)/gi, '')
-            .replace(/\[thinking\][\s\S]*?(?:\[\/thinking\]|$)/gi, '')
-            .replace(/^(?:thought|thinking|düşünme süreci|analiz):\s*/i, '') // Remove prefixes
-            .replace(/^#+\s*(?:thought|thinking|düşünme süreci|analiz)[\s\S]*?\n/i, '') // Remove headers
+            .replace(/<(?:think|thought)>[\s\S]*?(?:<\/(?:think|thought)>|$)/gi, "")
+            .replace(/^[\s\S]*?<\/think>/gi, "") // Handle cases where start tag is missing or missed
+            .replace(/\[thinking\][\s\S]*?(?:\[\/thinking\]|$)/gi, "")
+            .replace(/^thought:?\s*.*$/gim, "")
+            .replace(/^thinking:?\s*.*$/gim, "")
+            .replace(/^\s*analiz:?\s*.*$/gim, "")
+            .replace(/^\s*düşünme süreci:?\s*.*$/gim, "")
             .trim();
 
         return cleanedContent;
