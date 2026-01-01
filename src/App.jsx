@@ -11,7 +11,9 @@ const DescartesAI = () => {
   const [isTyping, setIsTyping] = useState(false)
   const [isLoaded, setIsLoaded] = useState(true)
   const [showSidebar, setShowSidebar] = useState(false)
+  const [pdfPage, setPdfPage] = useState(1)
   const messagesEndRef = useRef(null)
+  const pdfRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -24,6 +26,37 @@ const DescartesAI = () => {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  const handleCitationClick = (page) => {
+    setPdfPage(page);
+    // If using Adobe SDK, we would call the API here.
+    // For now, we rely on the iframe source refresh or communication.
+  }
+
+  // Simple Markdown-style link parser for citations [[Page X]](#X)
+  const renderMessageContent = (content) => {
+    const parts = content.split(/(\[\[.*?\]\]\(#\d+\))/g);
+    return parts.map((part, index) => {
+      const match = part.match(/\[\[(.*?)\]\]\(#(\d+)\)/);
+      if (match) {
+        const [full, label, page] = match;
+        return (
+          <a
+            key={index}
+            href={`#${page}`}
+            className="citation-link"
+            onClick={(e) => {
+              e.preventDefault();
+              handleCitationClick(parseInt(page));
+            }}
+          >
+            {label}
+          </a>
+        );
+      }
+      return part;
+    });
+  }
 
   const handleSend = async () => {
     if (!input.trim()) return
@@ -60,7 +93,7 @@ const DescartesAI = () => {
           </button>
           <img src="/logo.png" alt="Descartes Logo" className="navbar-logo" />
           <div className="logo ftc-text">
-            <span className="descartes-glow">DESCARTES</span> <span className="mobile-hide" style={{ color: 'var(--text-secondary)', fontWeight: '400', fontSize: '1rem', marginLeft: '5px' }}>AI</span>
+            <span className="descartes-glow">DESCARTES</span> <span className="mobile-hide" style={{ color: 'var(--text-secondary)', fontWeight: '400', fontSize: '1rem', marginLeft: '5px' }}>MANUAL AI</span>
           </div>
         </div>
         <div className="nav-links mobile-hide">
@@ -69,31 +102,32 @@ const DescartesAI = () => {
         </div>
       </nav>
 
-      <main className="main-layout">
-        <aside className={`sidebar glass-card ${showSidebar ? 'show' : ''}`}>
-          <div className="sidebar-header mobile-only">
-            <button className="close-sidebar" onClick={() => setShowSidebar(false)}>✕</button>
-          </div>
-          <div className="sidebar-section">
-            <h3>BİLGİ BANKASI</h3>
-            <ul>
-              <li className="glass-card-interactive" onClick={() => setShowSidebar(false)}>Sezon Kuralları</li>
-              <li className="glass-card-interactive" onClick={() => setShowSidebar(false)}>Strateji Rehberi</li>
-              <li className="glass-card-interactive" onClick={() => setShowSidebar(false)}>Teknik Dökümanlar</li>
-            </ul>
-          </div>
-          <div className="sidebar-footer">
-            <p>DESIGNED FOR DECODE</p>
-          </div>
-        </aside>
+      <main className="main-content">
+        {/* PDF VIEW PANE */}
+        <section className="pdf-pane">
+          <iframe
+            ref={pdfRef}
+            src={`/game-manual.pdf#page=${pdfPage}&view=FitH`}
+            width="100%"
+            height="100%"
+            style={{ border: 'none' }}
+            title="FTC Game Manual"
+          ></iframe>
+          {!isLoaded && (
+            <div className="pdf-overlay">
+              <h3>PDF Yükleniyor...</h3>
+            </div>
+          )}
+        </section>
 
-        <section className="chat-area">
+        {/* CHAT INTERACTION PANE */}
+        <section className="chat-pane">
           <div className="messages-container">
             {messages.filter(m => m.role !== 'system').map((msg, i) => (
               <div key={i} className={`message-wrapper ${msg.role}`}>
                 <div className={`message glass-card ${msg.role === 'assistant' ? 'glow-border' : ''}`}>
                   <div className="message-content">
-                    {msg.content}
+                    {renderMessageContent(msg.content)}
                   </div>
                 </div>
               </div>
@@ -111,14 +145,14 @@ const DescartesAI = () => {
           <div className="input-container glass-card">
             <input
               type="text"
-              placeholder="Kurallar, puanlama veya donanım hakkında sorun..."
+              placeholder="Kurallar veya oyun hakkında bir şey sor..."
               value={input}
               disabled={!isLoaded}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             />
             <button className="btn-primary" onClick={handleSend} disabled={!isLoaded || isTyping}>
-              {isTyping ? 'Düşünüyor...' : 'Gönder'}
+              {isTyping ? '...' : 'Sor'}
             </button>
           </div>
         </section>
