@@ -10,15 +10,7 @@ export const initWebLLM = async (onProgress) => {
 
     engine = await CreateMLCEngine(
         MODEL_ID,
-        {
-            initProgressCallback: onProgress,
-            // Optimization: Limit KV cache and sequences to reduce memory usage
-            engineConfig: {
-                kv_cache_config: {
-                    max_num_seqs: 1,
-                },
-            }
-        }
+        { initProgressCallback: onProgress }
     );
     return engine;
 };

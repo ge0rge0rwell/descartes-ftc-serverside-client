@@ -24,7 +24,7 @@ const DescartesAI = () => {
           setLoadingProgress(report.text)
         })
         setIsLoaded(true)
-        setMessages(prev => [...prev, { role: 'assistant', content: "Neural synthesis complete. Llama 3.2 1B (Optimized) is operational. Memory footprint stabilized. What's our first objective?" }])
+        setMessages(prev => [...prev, { role: 'assistant', content: "Neural synthesis complete. I've been specifically trained on the FTC DECODE (2025-2026) Game Manual. Ready to build the winning strategy, Partner?" }])
       } catch (err) {
         setLoadingProgress("Error: WebGPU might not be enabled or supported in your browser.")
         console.error(err)
@@ -47,10 +47,10 @@ const DescartesAI = () => {
 
     // Local Llama 3 Integration (Browser-side)
     try {
-      // Memory Optimization: Keep only the system prompt and the last 6 messages
+      // Memory Optimization: Keep system prompt + last 6 conversational turns
       const systemPrompt = messages[0];
-      const recentMessages = messages.slice(-6).concat(userMessage);
-      const chatHistory = [systemPrompt, ...recentMessages];
+      const conversationHistory = messages.slice(1).slice(-6);
+      const chatHistory = [systemPrompt, ...conversationHistory, userMessage];
 
       const assistantResponse = await chatWithWebLLM(chatHistory);
 
