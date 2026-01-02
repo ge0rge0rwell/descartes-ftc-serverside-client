@@ -7,7 +7,7 @@ const AdobeViewer = ({ pdfUrl, clientId, pageNum }) => {
     useEffect(() => {
         const initViewer = () => {
             const adobeDCView = new window.AdobeDC.View({
-                clientId: import.meta.env.VITE_ADOBE_CLIENT_ID || '60581b137a9749fbbcfd0b1feff27970',
+                clientId: import.meta.env.VITE_ADOBE_CLIENT_ID,
                 divId: 'adobe-dc-view',
             });
 
@@ -66,7 +66,7 @@ const AdobeViewer = ({ pdfUrl, clientId, pageNum }) => {
                     color: 'var(--text-secondary)',
                     zIndex: 0
                 }}>
-                    Klavuz Yükleniyor...
+                    Loading Manual...
                 </div>
             )}
             <div

@@ -8,7 +8,7 @@ const App = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([
     { role: 'system', content: DESCARTES_SYSTEM_PROMPT },
-    { role: 'assistant', content: "Merhaba Takım Arkadaşı! Ben Descartes. FTC kural kitabı, mühendislik süreçleri ve genel yarışma bilgileri konusunda sana yardımcı olmaya hazırım. Ne öğrenmek istersin?" }
+    { role: 'assistant', content: "Hello teammate! I'm Descartes. I'm ready to help you with the FTC rulebook, engineering processes, and general competition info. What would you like to learn?" }
   ])
   const [input, setInput] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -72,7 +72,7 @@ const App = () => {
 
       setMessages(prev => [...prev, { role: 'assistant', content: superCleaned }]);
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: "Üzgünüm, bir hata oluştu: " + error.message }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, an error occurred: " + error.message }]);
     } finally {
       setIsTyping(false);
     }
@@ -129,53 +129,7 @@ const App = () => {
         )}
       </button>
 
-      <div
-        className={`chat-overlay ${isOpen ? 'open' : 'closed'} ${isMaximized ? 'maximized' : ''}`}
-        style={{
-          '--mx': `${(mousePos.x / window.innerWidth - 0.5) * 20}px`,
-          '--my': `${(mousePos.y / window.innerHeight - 0.5) * 20}px`,
-          '--sx': `${(mousePos.x / window.innerWidth - 0.5) * 40}px`,
-          '--sy': `${(mousePos.y / window.innerHeight - 0.5) * 40}px`
-        }}
-      >
-        <div className="bg-wave"></div>
-        <div className="grid-floor"></div>
-        <div className="light-sweep"></div>
-        <div className="border-trace"></div>
-        <div className="reflection-flare"></div>
-        <div className="cursor-flare" style={{ left: `calc(var(--mx) + 160px)`, top: `calc(var(--my) + 260px)` }}></div>
-        <div className="data-stream left">
-          <div>01001010 11010011 00110011</div>
-          <div>DESCAR_SYS_ACTIVE_882</div>
-          <div>META_MORPH_PHASE_04</div>
-          <div>FTC_DECODE_SEASON_LOG</div>
-          <div>0XR_772_91A_SCANNED</div>
-        </div>
-        <div className="neural-grid"></div>
-        <div className="prism-reflection"></div>
-        <div className="aurora-glow"></div>
-        <div className="surface-sheen"></div>
-        <div className="scanlines"></div>
-        <div className="data-stream right">
-          <div>11001011 00110101 11110001</div>
-          <div>AUTH_TOKEN_ENCRYPTED</div>
-          <div>NEURAL_LINK_STABLE</div>
-          <div>PKT_LOSS_0.02%</div>
-          <div>TRACERT_FTC_622</div>
-        </div>
-        <div className="bokeh-container">
-          <span></span><span></span><span></span>
-        </div>
-        <div className="hud-bracket tl"></div>
-        <div className="hud-bracket tr"></div>
-        <div className="hud-bracket bl"></div>
-        <div className="hud-bracket br"></div>
-        <div className="liquid-blobs">
-          <span></span><span></span>
-        </div>
-        <div className="digital-dust">
-          <span></span><span></span><span></span><span></span><span></span>
-        </div>
+      <div className={`chat-overlay ${isOpen ? 'open' : 'closed'} ${isMaximized ? 'maximized' : ''}`}>
         <div className="app-container">
           <header className="header">
             <div className="logo-container">
@@ -185,16 +139,9 @@ const App = () => {
                   alt="DESCARTES"
                   className="header-logo-img"
                 />
-                <div className="biometric-scan"></div>
               </div>
               <div className="logo-text">
                 DESCARTES <span style={{ color: 'white', fontWeight: '300' }}>FTC AI</span>
-                <span className="status">
-                  <div className="waveform">
-                    <span></span><span></span><span></span>
-                  </div>
-                  Online
-                </span>
               </div>
             </div>
             <div className="header-actions">
@@ -218,13 +165,13 @@ const App = () => {
               className={activeTab === 'chat' ? 'active' : ''}
               onClick={() => setActiveTab('chat')}
             >
-              Sohbet
+              Chat
             </button>
             <button
               className={activeTab === 'pdf' ? 'active' : ''}
               onClick={() => setActiveTab('pdf')}
             >
-              Klavuz
+              Manual
             </button>
           </nav>
 
@@ -261,12 +208,12 @@ const App = () => {
               <div className="input-area">
                 <input
                   type="text"
-                  placeholder="Kural veya sayfa numarası sor..."
+                  placeholder="Ask about a rule or page number..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                 />
-                <button onClick={handleSend} disabled={isTyping}>Sor</button>
+                <button onClick={handleSend} disabled={isTyping}>Ask</button>
               </div>
             </div>
           </main>
