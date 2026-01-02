@@ -223,20 +223,6 @@
     border: 1px solid var(--border);
 }
 
-.typing {
-    display: flex;
-    gap: 4px;
-    padding: 15px;
-}
-
-.typing span {
-    width: 6px;
-    height: 6px;
-    background: var(--primary);
-    border-radius: 50%;
-    animation: slideUpFade 1s infinite alternate;
-}
-
 .input-area {
     padding: 15px;
     background: var(--bg-dark);

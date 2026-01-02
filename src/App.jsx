@@ -11,31 +11,12 @@ const App = () => {
     { role: 'assistant', content: "Hello teammate! I'm Descartes. I'm ready to help you with the FTC rulebook, engineering processes, and general competition info. What would you like to learn?" }
   ])
   const [input, setInput] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const [pdfPage, setPdfPage] = useState(1)
-  const [activeTab, setActiveTab] = useState('chat') // mobile tab: 'pdf' or 'chat'
   const [isMaximized, setIsMaximized] = useState(false)
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [tickerText, setTickerText] = useState('SYSTEM READY...')
   const messagesEndRef = useRef(null)
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      setMousePos({ x: e.clientX, y: e.clientY })
-    }
-    window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
-  }, [])
-
-  useEffect(() => {
-    const statuses = ['ANALYZING PROTOCOLS...', 'INDEXING KNOWLEDGE...', 'DESCARTES ONLINE', 'SYNCING PDF...', 'ENCRYPTING CHANNEL...']
-    let i = 0
-    const interval = setInterval(() => {
-      setTickerText(statuses[i])
-      i = (i + 1) % statuses.length
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [])
+  const [pdfPage, setPdfPage] = useState(1)
+  const [activeTab, setActiveTab] = useState('chat') // mobile tab: 'pdf' or 'chat'
+  const [isTyping, setIsTyping] = useState(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -192,16 +173,6 @@ const App = () => {
                     </div>
                   </div>
                 ))}
-                {isTyping && (
-                  <div className="message assistant">
-                    <div className="message-bubble typing">
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  </div>
-                )}
-                <div className="system-ticker">{tickerText}</div>
                 <div ref={messagesEndRef} />
               </div>
 
