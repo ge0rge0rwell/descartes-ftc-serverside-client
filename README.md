@@ -1,16 +1,25 @@
-# React + Vite
+=== Descartes FTC AI ===
+Contributors: OguzhanAcar
+Tags: ftc, ai, chat, assistant, manual
+Tested up to: 7.0
+Stable tag: 1.0.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An AI-powered chat assistant for FIRST Tech Challenge (FTC), featuring advanced search for game manuals and a PDF viewer.
 
-Currently, two official plugins are available:
+== Description ==
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Descartes FTC AI is a specialized AI assistant designed to help FTC teams navigate game manuals and rules efficiently. It features a built-in PDF viewer and context-aware chat capabilities.
 
-## React Compiler
+== Installation ==
 
-The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
+1. Upload the `descartes-ftc` folder to the `/wp-content/plugins/` directory.
+2. Activate the plugin through the 'Plugins' menu in WordPress.
+3. The chat assistant will appear on the front-end of your site.
 
-## Expanding the ESLint configuration
+== Changelog ==
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+= 1.0.0 =
+* Initial release.
+

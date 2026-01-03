@@ -4,6 +4,8 @@
  * Description: An AI-powered chat assistant for FTC (FIRST Tech Challenge), featuring kural kitabı search and a PDF viewer.
  * Version: 1.0.0
  * Author: Oğuzhan Acar
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 if (!defined('ABSPATH')) {
