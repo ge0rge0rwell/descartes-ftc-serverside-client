@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import remarkBreaks from 'remark-breaks'
 import { DESCARTES_SYSTEM_PROMPT } from './utils/ftcKnowledge'
 import { callGemini } from './services/geminiService'
 import AdobeViewer from './components/AdobeViewer'
@@ -59,29 +62,41 @@ const App = () => {
     }
   }
 
-  const parseCitations = (content) => {
-    const parts = content.split(/(\[\[\d+\]\]\(#\d+\))/g);
-    return parts.map((part, i) => {
-      const match = part.match(/\[\[(\d+)\]\]\(#(\d+)\)/);
-      if (match) {
-        return (
-          <a
-            key={i}
-            href={`#${match[2]}`}
-            className="citation-link"
-            onClick={(e) => {
-              e.preventDefault();
-              setPdfPage(parseInt(match[2]));
-              setActiveTab('pdf');
-            }}
-          >
-            [{match[1]}]
-          </a>
-        );
-      }
-      return part;
-    });
-  }
+  // Renders assistant replies as markdown. Citation links of the form
+  // [[1]](#1) are valid markdown links, so we intercept anchors whose href
+  // is "#<page>" to drive the PDF viewer instead of navigating.
+  const renderMarkdown = (content) => (
+    <ReactMarkdown
+      remarkPlugins={[remarkGfm, remarkBreaks]}
+      components={{
+        a: ({ href, children }) => {
+          const pageMatch = href && href.match(/^#(\d+)$/);
+          if (pageMatch) {
+            return (
+              <a
+                href={href}
+                className="citation-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setPdfPage(parseInt(pageMatch[1]));
+                  setActiveTab('pdf');
+                }}
+              >
+                {children}
+              </a>
+            );
+          }
+          return (
+            <a href={href} target="_blank" rel="noopener noreferrer">
+              {children}
+            </a>
+          );
+        },
+      }}
+    >
+      {content}
+    </ReactMarkdown>
+  )
 
   return (
     <div className="chat-widget-container">
@@ -122,7 +137,7 @@ const App = () => {
                 />
               </div>
               <div className="logo-text">
-                DESCARTES <span style={{ color: 'white', fontWeight: '300' }}>FTC AI</span>
+                DESCARTES <span style={{ color: "#8A3324", fontWeight: '700' }}>FTC AI</span>
               </div>
             </div>
             <div className="header-actions">
@@ -169,7 +184,7 @@ const App = () => {
                 {messages.filter(m => m.role !== 'system').map((msg, i) => (
                   <div key={i} className={`message ${msg.role}`}>
                     <div className="message-bubble">
-                      {msg.role === 'assistant' ? parseCitations(msg.content) : msg.content}
+                      {msg.role === 'assistant' ? renderMarkdown(msg.content) : msg.content}
                     </div>
                   </div>
                 ))}

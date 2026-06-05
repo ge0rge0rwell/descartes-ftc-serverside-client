@@ -1,12 +1,12 @@
 :root {
-    --primary: #92daac;
-    --primary-glow: rgba(146, 218, 172, 0.4);
-    --bg-dark: #1e293b;
-    --bg-darker: rgba(15, 23, 42, 0.95);
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --border: rgba(255, 255, 255, 0.1);
-    --accent-gradient: linear-gradient(135deg, #92daac 0%, #4ade80 100%);
+    --primary: #832A22;
+    --primary-glow: rgba(131, 42, 34, 0.4);
+    --bg-dark: #DAD9DF;
+    --bg-darker: rgba(255, 255, 255, 0.98);
+    --text-primary: #1a1a1a;
+    --text-secondary: #5c5b61;
+    --border: rgba(131, 42, 34, 0.15);
+    --accent-gradient: linear-gradient(135deg, #a3392e 0%, #832A22 100%);
 }
 
 @keyframes slideUpFade {
@@ -62,7 +62,7 @@
 .chat-fab svg {
     width: 30px;
     height: 30px;
-    fill: #000;
+    fill: #fff;
 }
 
 .chat-overlay {
@@ -210,12 +210,81 @@
     border-radius: 12px;
     font-size: 0.9rem;
     line-height: 1.4;
+    overflow-wrap: anywhere;
     animation: slideUpFade 0.3s ease-out;
+}
+
+/* Markdown block spacing inside chat bubbles */
+.message-bubble> :first-child {
+    margin-top: 0;
+}
+
+.message-bubble> :last-child {
+    margin-bottom: 0;
+}
+
+.message-bubble p {
+    margin: 0 0 0.6em;
+}
+
+.message-bubble ul,
+.message-bubble ol {
+    margin: 0 0 0.6em;
+    padding-left: 1.3em;
+}
+
+.message-bubble li {
+    margin: 0.15em 0;
+}
+
+.message-bubble h1,
+.message-bubble h2,
+.message-bubble h3,
+.message-bubble h4 {
+    margin: 0.4em 0 0.3em;
+    font-size: 1em;
+    font-weight: 700;
+}
+
+.message-bubble code {
+    background: rgba(131, 42, 34, 0.08);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+.message-bubble pre {
+    background: rgba(131, 42, 34, 0.08);
+    padding: 10px 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0 0 0.6em;
+}
+
+.message-bubble pre code {
+    background: none;
+    padding: 0;
+}
+
+.message-bubble table {
+    border-collapse: collapse;
+    margin: 0 0 0.6em;
+    font-size: 0.85em;
+}
+
+.message-bubble th,
+.message-bubble td {
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+}
+
+.message-bubble a {
+    color: var(--primary);
 }
 
 .user .message-bubble {
     background: var(--primary);
-    color: #000;
+    color: #fff;
 }
 
 .assistant .message-bubble {
@@ -233,17 +302,17 @@
 
 .input-area input {
     flex: 1;
-    background: rgba(0, 0, 0, 0.2);
+    background: #fff;
     border: 1px solid var(--border);
     border-radius: 20px;
     padding: 8px 15px;
-    color: #fff;
+    color: var(--text-primary);
     outline: none;
 }
 
 .input-area button {
     background: var(--primary);
-    color: #000;
+    color: #fff;
     border: none;
     border-radius: 8px;
     padding: 0 15px;
