@@ -45,8 +45,17 @@ export const callGemini = async (messages) => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`OpenRouter Error ${response.status}: ${errorData.error?.message || response.statusText}`);
+            // Error bodies are not always JSON (gateways/proxies can return
+            // HTML or plain text); parsing without a guard would throw and mask
+            // the real HTTP status.
+            let detail = response.statusText;
+            try {
+                const errorData = await response.json();
+                detail = errorData.error?.message || detail;
+            } catch {
+                /* keep statusText */
+            }
+            throw new Error(`OpenRouter Error ${response.status}: ${detail}`);
         }
 
         const data = await response.json();
@@ -54,7 +63,9 @@ export const callGemini = async (messages) => {
             throw new Error('Invalid OpenRouter response');
         }
 
-        const rawContent = data.choices[0].message.content;
+        // A valid reply can legitimately be empty; coerce to a string so the
+        // cleaning chain never throws on null and surfaces a false error.
+        const rawContent = data.choices[0].message?.content ?? '';
 
         // TITANIUM SUPPRESSION: Recursive cleaning to ensure zero leakage
         let cleanedContent = rawContent;

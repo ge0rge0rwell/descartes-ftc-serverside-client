@@ -4,14 +4,20 @@ import React, {
   useRef,
   useMemo,
   useCallback,
+  lazy,
+  Suspense,
 } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkBreaks from 'remark-breaks'
 import { DESCARTES_SYSTEM_PROMPT } from './utils/ftcKnowledge'
 import { callGemini } from './services/geminiService'
-import AdobeViewer from './components/AdobeViewer'
 import './styles/main.css'
+
+/* The Adobe View SDK is heavy and third-party. Load the viewer chunk (and the
+ * SDK script it pulls in) lazily, only once the user actually opens the Manual,
+ * so chat-only visitors never pay for it. */
+const AdobeViewer = lazy(() => import('./components/AdobeViewer'))
 
 /* ------------------------------------------------------------------ *
  *  Icons — small, dependency-free inline SVGs
@@ -75,7 +81,7 @@ const SUGGESTIONS = [
 /* Strip any reasoning artifacts that slip past the service layer. */
 const FINAL_MARKERS = ['</think>', '</thought>', '</reasoning>', '--- END OF SEARCH ---']
 const scrubResponse = (raw) => {
-  let out = raw
+  let out = String(raw ?? '')
   FINAL_MARKERS.forEach((m) => {
     if (out.includes(m)) out = out.substring(out.lastIndexOf(m) + m.length)
   })
@@ -85,9 +91,15 @@ const scrubResponse = (raw) => {
     .trim()
 }
 
+/* Monotonic message ids give every bubble a stable React key, so list
+ * re-renders never re-mount existing messages (and re-parse their markdown). */
+let _messageSeq = 0
+const nextMessageId = () => `m${++_messageSeq}`
+
 const INITIAL_MESSAGES = [
-  { role: 'system', content: DESCARTES_SYSTEM_PROMPT },
+  { id: 'system', role: 'system', content: DESCARTES_SYSTEM_PROMPT },
   {
+    id: 'welcome',
     role: 'assistant',
     content:
       "Hello teammate! I'm **Descartes** — your FTC mentor for the **DECODE** season. Ask me about the rulebook, scoring, robot constraints, or engineering strategy, and I'll cite the manual pages so you can verify everything.",
@@ -99,7 +111,6 @@ const INITIAL_MESSAGES = [
  * ------------------------------------------------------------------ */
 const Message = React.memo(function Message({
   msg,
-  index,
   isCopied,
   onCopy,
   renderContent,
@@ -122,7 +133,7 @@ const Message = React.memo(function Message({
             <button
               type="button"
               className={`copy-btn ${isCopied ? 'copied' : ''}`}
-              onClick={() => onCopy(msg.content, index)}
+              onClick={() => onCopy(msg.content, msg.id)}
               aria-label={isCopied ? 'Copied' : 'Copy message'}
             >
               {isCopied ? <Icon.Check /> : <Icon.Copy />}
@@ -146,7 +157,8 @@ const App = () => {
   const [isTyping, setIsTyping] = useState(false)
   const [pdfPage, setPdfPage] = useState(1)
   const [activeTab, setActiveTab] = useState('chat') // 'pdf' | 'chat'
-  const [copiedIndex, setCopiedIndex] = useState(null)
+  const [pdfMounted, setPdfMounted] = useState(false)
+  const [copiedId, setCopiedId] = useState(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
 
   const messagesEndRef = useRef(null)
@@ -166,7 +178,14 @@ const App = () => {
     () => messages.filter((m) => m.role !== 'system'),
     [messages],
   )
-  const showSuggestions = visibleMessages.length <= 1 && !isTyping
+  // The intro hero stands in for the canned welcome message, so we don't also
+  // render that bubble. `chatStarted` flips once the user sends their first
+  // turn — the hero stays (as a compact header), only the chips go away.
+  const conversation = useMemo(
+    () => visibleMessages.filter((m) => m.id !== 'welcome'),
+    [visibleMessages],
+  )
+  const chatStarted = conversation.length > 0
 
   /* ---- scrolling -------------------------------------------------- */
   const scrollToBottom = useCallback((behavior = 'smooth') => {
@@ -199,6 +218,13 @@ const App = () => {
   }, [isOpen])
 
   useEffect(() => () => clearTimeout(copyTimer.current), [])
+
+  /* ---- lazy-mount the PDF viewer on first reveal ------------------ */
+  // Once the Manual pane (or split/maximized view) is shown, keep the viewer
+  // mounted; it never needs to load for users who only ever use chat.
+  useEffect(() => {
+    if (activeTab === 'pdf' || isMaximized) setPdfMounted(true)
+  }, [activeTab, isMaximized])
 
   /* ---- markdown renderer (stable) --------------------------------- */
   const markdownComponents = useMemo(
@@ -243,11 +269,11 @@ const App = () => {
   )
 
   /* ---- copy ------------------------------------------------------- */
-  const handleCopy = useCallback((content, index) => {
+  const handleCopy = useCallback((content, id) => {
     const done = () => {
-      setCopiedIndex(index)
+      setCopiedId(id)
       clearTimeout(copyTimer.current)
-      copyTimer.current = setTimeout(() => setCopiedIndex(null), 1600)
+      copyTimer.current = setTimeout(() => setCopiedId(null), 1600)
     }
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(content).then(done).catch(done)
@@ -257,45 +283,60 @@ const App = () => {
   }, [])
 
   /* ---- send ------------------------------------------------------- */
+  // Run a completion for an already-finalized message list (the list must end
+  // with the user turn we want answered). Shared by first-send and retry so
+  // neither path can duplicate the user message or strip the other's logic.
+  const runCompletion = useCallback(async (list) => {
+    setIsTyping(true)
+    try {
+      const response = await callGemini(list)
+      setMessages([
+        ...list,
+        { id: nextMessageId(), role: 'assistant', content: scrubResponse(response) },
+      ])
+    } catch (error) {
+      setMessages([
+        ...list,
+        {
+          id: nextMessageId(),
+          role: 'assistant',
+          content: `**Connection issue.** ${error.message}`,
+          isError: true,
+        },
+      ])
+    } finally {
+      setIsTyping(false)
+    }
+  }, [])
+
   const handleSend = useCallback(
-    async (overrideText) => {
+    (overrideText) => {
       const text = (overrideText ?? input).trim()
       if (!text || isTyping) return
 
-      const userMessage = { role: 'user', content: text }
+      const userMessage = { id: nextMessageId(), role: 'user', content: text }
       const nextMessages = [...messages, userMessage]
       setMessages(nextMessages)
       setInput('')
       if (inputRef.current) inputRef.current.style.height = 'auto'
-      setIsTyping(true)
-
-      try {
-        const response = await callGemini(nextMessages)
-        setMessages((prev) => [
-          ...prev,
-          { role: 'assistant', content: scrubResponse(response) },
-        ])
-      } catch (error) {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: `**Connection issue.** ${error.message}`,
-            isError: true,
-          },
-        ])
-      } finally {
-        setIsTyping(false)
-      }
+      runCompletion(nextMessages)
     },
-    [input, isTyping, messages],
+    [input, isTyping, messages, runCompletion],
   )
 
   const handleRetry = useCallback(() => {
-    // Re-send the last user message after a failed/again request.
-    const lastUser = [...messages].reverse().find((m) => m.role === 'user')
-    if (lastUser) handleSend(lastUser.content)
-  }, [messages, handleSend])
+    if (isTyping) return
+    // Drop the trailing error (and any non-user tail) so we re-send the same
+    // user turn instead of appending a duplicate copy of it.
+    let list = messages
+    while (list.length && list[list.length - 1].role !== 'user') {
+      list = list.slice(0, -1)
+    }
+    if (list.length && list[list.length - 1].role === 'user') {
+      setMessages(list)
+      runCompletion(list)
+    }
+  }, [messages, isTyping, runCompletion])
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -345,17 +386,9 @@ const App = () => {
         <div className="app-container">
           <header className="header">
             <div className="logo-container">
-              <div className="logo-wrapper">
-                <img src={logoSrc} alt="DESCARTES" className="header-logo-img" />
-                <span className="logo-pulse" aria-hidden="true" />
-              </div>
               <div className="logo-text">
                 <span className="title-line">
                   DESCARTES <span className="brand-accent">FTC AI</span>
-                </span>
-                <span className="status-line">
-                  <span className="status-dot" aria-hidden="true" />
-                  FTC DECODE · Online
                 </span>
               </div>
             </div>
@@ -400,10 +433,21 @@ const App = () => {
 
           <main className="main-content">
             <div className={`pdf-pane ${activeTab === 'pdf' ? 'active' : ''}`}>
-              <AdobeViewer
-                pdfUrl={window.descartesConfig?.pdfUrl || '/game-manual.pdf'}
-                pageNum={pdfPage}
-              />
+              {pdfMounted && (
+                <Suspense
+                  fallback={
+                    <div className="pdf-loading">
+                      <span className="pdf-loading-spinner" aria-hidden="true" />
+                      <span className="pdf-loading-text">Loading manual…</span>
+                    </div>
+                  }
+                >
+                  <AdobeViewer
+                    pdfUrl={window.descartesConfig?.pdfUrl || '/game-manual.pdf'}
+                    pageNum={pdfPage}
+                  />
+                </Suspense>
+              )}
             </div>
 
             <div className={`chat-pane ${activeTab === 'chat' ? 'active' : ''}`}>
@@ -413,12 +457,51 @@ const App = () => {
                 onScroll={handleScroll}
                 aria-live="polite"
               >
-                {visibleMessages.map((msg, i) => (
+                <div className={`empty-state ${chatStarted ? 'started' : ''}`}>
+                  <div className="empty-hero-row">
+                    <div className="empty-logo">
+                      <img src={logoSrc} alt="" />
+                    </div>
+                    <div className="empty-hero-text">
+                      <span className="empty-eyebrow">
+                        FTC DECODE · AI Assistant
+                      </span>
+                      <h2 className="empty-title">
+                        Hi, I&apos;m{' '}
+                        <span className="brand-accent">Descartes</span>
+                      </h2>
+                      <p className="empty-sub">
+                        Your mentor for the DECODE season — ask about rules,
+                        scoring, robot limits, or strategy, and I&apos;ll cite
+                        the exact manual pages so you can verify every answer.
+                      </p>
+                    </div>
+                  </div>
+                  {!chatStarted && (
+                    <>
+                      <span className="suggest-head">Suggested questions</span>
+                      <div className="suggestions">
+                        {SUGGESTIONS.map((s) => (
+                          <button
+                            key={s.label}
+                            type="button"
+                            className="suggestion-chip"
+                            onClick={() => handleSend(s.label)}
+                          >
+                            <Icon.Spark className="chip-spark" />
+                            <span>{s.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {conversation.map((msg) => (
                   <Message
-                    key={i}
+                    key={msg.id}
                     msg={msg}
-                    index={i}
-                    isCopied={copiedIndex === i}
+                    isCopied={copiedId === msg.id}
                     onCopy={handleCopy}
                     renderContent={renderContent}
                     logoSrc={logoSrc}
@@ -432,7 +515,10 @@ const App = () => {
                     </div>
                     <div className="message-col">
                       <div className="message-bubble typing-bubble">
-                        <span className="typing-indicator" aria-label="Descartes is typing">
+                        <span
+                          className="typing-indicator"
+                          aria-label="Descartes is typing"
+                        >
                           <span className="typing-dot" />
                           <span className="typing-dot" />
                           <span className="typing-dot" />
@@ -442,25 +528,13 @@ const App = () => {
                   </div>
                 )}
 
-                {showSuggestions && (
-                  <div className="suggestions">
-                    {SUGGESTIONS.map((s) => (
-                      <button
-                        key={s.label}
-                        type="button"
-                        className="suggestion-chip"
-                        onClick={() => handleSend(s.label)}
-                      >
-                        <Icon.Spark className="chip-spark" />
-                        <span>{s.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
                 {lastIsError && !isTyping && (
                   <div className="retry-row">
-                    <button type="button" className="retry-btn" onClick={handleRetry}>
+                    <button
+                      type="button"
+                      className="retry-btn"
+                      onClick={handleRetry}
+                    >
                       <Icon.Refresh /> Try again
                     </button>
                   </div>
@@ -495,9 +569,13 @@ const App = () => {
                     className="send-btn"
                     onClick={() => handleSend()}
                     disabled={!input.trim() || isTyping}
-                    aria-label="Send message"
+                    aria-label={isTyping ? 'Waiting for reply' : 'Send message'}
                   >
-                    <Icon.Send />
+                    {isTyping ? (
+                      <span className="send-spinner" aria-hidden="true" />
+                    ) : (
+                      <Icon.Send />
+                    )}
                   </button>
                 </div>
                 <p className="input-hint">

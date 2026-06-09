@@ -52,6 +52,13 @@ const AdobeViewer = ({ pdfUrl, pageNum }) => {
         return () => {
             cancelled = true;
             document.removeEventListener('adobe_dc_view_sdk.ready', initViewer);
+            // Tear down before the next pdfUrl mounts a fresh viewer: clear the
+            // stale ready flag, drop the API ref, and empty the container so an
+            // old document (or a stuck "Loading manual…") can never persist.
+            setIsReady(false);
+            adobeApiRef.current = null;
+            const container = document.getElementById('adobe-dc-view');
+            if (container) container.replaceChildren();
         };
     }, [pdfUrl]);
 
