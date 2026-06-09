@@ -17,9 +17,15 @@ export const callGemini = async (messages) => {
     }
     contextHeader += "--- END OF SEARCH ---\n";
 
-    // Inject results into system message or as a separate context message
-    const augmentedMessages = [...messages];
-    augmentedMessages[0].content += contextHeader;
+    // Inject results into a *fresh* system message. We must not mutate
+    // messages[0] in place: it is the object held in React state, so
+    // appending to it would permanently grow the system prompt with every
+    // query across the whole conversation.
+    const augmentedMessages = messages.map((message, index) =>
+        index === 0
+            ? { ...message, content: message.content + contextHeader }
+            : message
+    );
 
     try {
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
