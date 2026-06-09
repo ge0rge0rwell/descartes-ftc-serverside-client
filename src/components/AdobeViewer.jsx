@@ -1,79 +1,86 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
-const AdobeViewer = ({ pdfUrl, clientId, pageNum }) => {
-    const viewerRef = useRef(null);
+const ADOBE_SDK_SRC = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
+
+const AdobeViewer = ({ pdfUrl, pageNum }) => {
     const adobeApiRef = useRef(null);
+    const [isReady, setIsReady] = useState(false);
 
+    // Initialise the Adobe viewer once per pdfUrl.
     useEffect(() => {
+        let cancelled = false;
+
         const initViewer = () => {
+            if (cancelled || !window.AdobeDC) return;
+
             const adobeDCView = new window.AdobeDC.View({
                 clientId: import.meta.env.VITE_ADOBE_CLIENT_ID,
                 divId: 'adobe-dc-view',
             });
 
-            adobeDCView.previewFile({
-                content: { location: { url: pdfUrl } },
-                metaData: { fileName: 'game-manual.pdf' }
-            }, {
-                embedMode: 'FULL_WINDOW',
-                showAnnotationTools: false,
-                showLeftHandPanel: true,
-            }).then(viewer => {
-                adobeApiRef.current = viewer;
-                if (pageNum) {
-                    viewer.getAPIs().then(apis => {
-                        apis.gotoLocation(pageNum);
-                    });
-                }
-            });
+            adobeDCView
+                .previewFile(
+                    {
+                        content: { location: { url: pdfUrl } },
+                        metaData: { fileName: 'game-manual.pdf' },
+                    },
+                    {
+                        embedMode: 'FULL_WINDOW',
+                        showAnnotationTools: false,
+                        showLeftHandPanel: true,
+                    },
+                )
+                .then((viewer) => {
+                    if (cancelled) return;
+                    adobeApiRef.current = viewer;
+                    setIsReady(true);
+                });
         };
 
         if (window.AdobeDC) {
             initViewer();
         } else {
-            const script = document.createElement('script');
-            script.src = 'https://acrobatservices.adobe.com/view-sdk/viewer.js';
-            script.async = true;
-            script.onload = () => {
-                if (window.AdobeDC) initViewer();
-            };
-            document.body.appendChild(script);
-
+            if (!document.querySelector(`script[src="${ADOBE_SDK_SRC}"]`)) {
+                const script = document.createElement('script');
+                script.src = ADOBE_SDK_SRC;
+                script.async = true;
+                document.body.appendChild(script);
+            }
             document.addEventListener('adobe_dc_view_sdk.ready', initViewer);
         }
 
         return () => {
+            cancelled = true;
             document.removeEventListener('adobe_dc_view_sdk.ready', initViewer);
+            // Tear down before the next pdfUrl mounts a fresh viewer: clear the
+            // stale ready flag, drop the API ref, and empty the container so an
+            // old document (or a stuck "Loading manual…") can never persist.
+            setIsReady(false);
+            adobeApiRef.current = null;
+            const container = document.getElementById('adobe-dc-view');
+            if (container) container.replaceChildren();
         };
-    }, [pdfUrl, clientId]);
+    }, [pdfUrl]);
 
+    // Navigate to the requested page once the viewer is ready.
     useEffect(() => {
-        if (adobeApiRef.current && pageNum) {
-            adobeApiRef.current.getAPIs().then(apis => {
-                apis.gotoLocation(pageNum);
-            });
+        if (isReady && adobeApiRef.current && pageNum) {
+            adobeApiRef.current
+                .getAPIs()
+                .then((apis) => apis.gotoLocation(pageNum))
+                .catch(() => {});
         }
-    }, [pageNum]);
+    }, [pageNum, isReady]);
 
     return (
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-            {!adobeApiRef.current && (
-                <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    color: 'var(--text-secondary)',
-                    zIndex: 0
-                }}>
-                    Loading Manual...
+        <div className="pdf-viewer-root">
+            {!isReady && (
+                <div className="pdf-loading">
+                    <span className="pdf-loading-spinner" aria-hidden="true" />
+                    <span className="pdf-loading-text">Loading manual…</span>
                 </div>
             )}
-            <div
-                id="adobe-dc-view"
-                ref={viewerRef}
-                style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }}
-            />
+            <div id="adobe-dc-view" className="adobe-dc-view" />
         </div>
     );
 };
